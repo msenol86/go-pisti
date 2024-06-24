@@ -10,9 +10,9 @@ func main() {
 	g := createAndStartGame()
 	isGameOver := false
 	for !isGameOver {
-		fmt.Println("playerHand:", g.playerHand)
+		fmt.Println("playerHand:", g.player1.hand)
 		fmt.Println("board", g.boardToStringSlice())
-		fmt.Printf("Input the number of the card do you want to play? [1-%d]: ", len(g.playerHand))
+		fmt.Printf("Input the number of the card do you want to play? [1-%d]: ", len(g.player1.hand))
 		var input string
 		fmt.Scanln(&input)
 		if s, err := strconv.Atoi(input); err == nil {
@@ -26,7 +26,7 @@ func main() {
 		}
 		g = g.playCard(false, 0)
 		fmt.Println("--------------\n\n")
-		if len(g.deck) > 7 && len(g.playerHand) < 1 && len(g.opponentHand) < 1 {
+		if len(g.deck) > 7 && len(g.player1.hand) < 1 && len(g.player2.hand) < 1 {
 			fmt.Print("Handin over new cards")
 			for i := 0; i < 3; i++ {
 				time.Sleep(1 * time.Second)
@@ -34,7 +34,7 @@ func main() {
 			}
 			g = g.handOverCards(false)
 		}
-		if len(g.deck) == 0 && len(g.playerHand) == 0 && len(g.opponentHand) == 0 {
+		if len(g.deck) == 0 && len(g.player1.hand) == 0 && len(g.player2.hand) == 0 {
 			isGameOver = true
 		}
 	}
