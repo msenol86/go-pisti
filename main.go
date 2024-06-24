@@ -2,11 +2,35 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"strconv"
 	"time"
 )
 
+func startServer(data chan int) {
+	// Bind the port.
+	ServerAddr, err := net.ResolveUDPAddr("udp", ":6666")
+	if err != nil {
+		fmt.Println("Error binding port!")
+	}
+
+	ServerConn, _ := net.ListenUDP("udp", ServerAddr)
+	defer ServerConn.Close()
+
+	buf := make([]byte, 1024)
+	for {
+		// Recieve a UDP packet and unmarshal it into a protobuf.
+		n, adrr, _ := ServerConn.ReadFromUDP(buf)
+		fmt.Println("Packet received!", n, adrr)
+		// data <- n
+		// print(data)
+		// Do stuff with buf.
+	}
+}
+
 func main() {
+	channel := make(chan int)
+	go startServer(channel)
 	g := createAndStartGame()
 	isGameOver := false
 	for !isGameOver {
