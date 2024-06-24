@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 func main() {
 	// theDeck := createDeck()
@@ -20,21 +23,42 @@ func main() {
 	g.deck.print()
 	fmt.Println("playerHand:", g.playerHand)
 	fmt.Println("board", g.boardToStringSlice())
-	g = g.playCard(true, 0)
-	fmt.Println("playerHand:", g.playerHand)
-	fmt.Println("board:", g.boardToStringSlice())
-	g = g.playCard(false, 0)
-	fmt.Println("playerHand:", g.playerHand)
-	fmt.Println("board:", g.boardToStringSlice())
-	g = g.playCard(true, 0)
-	fmt.Println("playerHand:", g.playerHand)
-	fmt.Println("board:", g.boardToStringSlice())
-	g = g.playCard(false, 0)
-	fmt.Println("playerHand:", g.playerHand)
-	fmt.Println("board:", g.boardToStringSlice())
-	g = g.playCard(true, 0)
-	fmt.Println("playerHand:", g.playerHand)
-	fmt.Println("board:", g.boardToStringSlice())
+
+	fmt.Print("Input the number of the card do you want to play? [1-4]: ")
+	var input string
+	fmt.Scanln(&input)
+	if s, err := strconv.Atoi(input); err == nil {
+		fmt.Printf("%T, %v", s, s-1)
+		g = g.playCard(true, s-1)
+		fmt.Println("playerHand:", g.playerHand)
+		fmt.Println("board", g.boardToStringSlice())
+	}
+	// fmt.Print(input)
+
+	// g = g.playCard(true, age)
+
+	// fmt.Println("playerHand:", g.playerHand)
+	// fmt.Println("board", g.boardToStringSlice())
+
+	// xx := cardIndex - 1
+	// fmt.Println("xx", xx)
+	// g = g.playCard(true, xx)
+
+	// g = g.playCard(true, 0)
+	// fmt.Println("playerHand:", g.playerHand)
+	// fmt.Println("board:", g.boardToStringSlice())
+	// g = g.playCard(false, 0)
+	// fmt.Println("playerHand:", g.playerHand)
+	// fmt.Println("board:", g.boardToStringSlice())
+	// g = g.playCard(true, 0)
+	// fmt.Println("playerHand:", g.playerHand)
+	// fmt.Println("board:", g.boardToStringSlice())
+	// g = g.playCard(false, 0)
+	// fmt.Println("playerHand:", g.playerHand)
+	// fmt.Println("board:", g.boardToStringSlice())
+	// g = g.playCard(true, 0)
+	// fmt.Println("playerHand:", g.playerHand)
+	// fmt.Println("board:", g.boardToStringSlice())
 }
 
 // func startGame(pDeck Deck, pBoard []Card, pPlayerHand []Card, popponentHand []Card, pPlayerPistiCount int, pOpponentPistiCount int, pPlayerPoints int, pOpponentPoints int) {
