@@ -6,10 +6,39 @@ import (
 	"time"
 )
 
+type NetworkState struct {
+	player1_addr string
+	player2_addr string
+}
+
 func main() {
-	channel := make(chan int)
-	go startServer(channel)
+	channel := make(chan string)
+	playerJoinChannel := make(chan string)
+	go startServer(channel, playerJoinChannel)
 	g := createAndStartGame()
+	ns := NetworkState{"", ""}
+	fmt.Println("Waiting for players to join")
+	for {
+		msg := <-playerJoinChannel
+		if ns.player1_addr == "" {
+			fmt.Printf("Adding %s as player 1\n", msg)
+			ns.player1_addr = msg
+		} else if ns.player2_addr == "" {
+			fmt.Printf("Adding %s as player 2\n", msg)
+			ns.player2_addr = msg
+		} else {
+			fmt.Println("All player slots are full!")
+		}
+
+		if ns.player1_addr != "" && ns.player2_addr != "" {
+			break
+		} else {
+			time.Sleep(2 * time.Second)
+		}
+	}
+	fmt.Println("Players joined")
+	fmt.Printf("Player 1 %s\n", ns.player1_addr)
+	fmt.Printf("Player 2 %s\n", ns.player2_addr)
 	isGameOver := false
 	for !isGameOver {
 		fmt.Println("playerHand:", g.player1.hand)
