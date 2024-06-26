@@ -30,8 +30,8 @@ const (
 )
 
 type Card struct {
-	suit SuitType
-	rank RankType
+	Suit SuitType
+	Rank RankType
 }
 
 func RemoveIndex(s []Card, index int) []Card {

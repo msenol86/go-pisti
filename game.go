@@ -58,7 +58,7 @@ func (g Game) playCard(isPlayerCard bool, cardIndex int) Game {
 
 	g.board = append(g.board, selectedCard)
 	if len(g.board) > 1 {
-		if g.board[len(g.board)-1].rank == g.board[len(g.board)-2].rank {
+		if g.board[len(g.board)-1].Rank == g.board[len(g.board)-2].Rank {
 			fmt.Println("Win!\a")
 			for i := 0; i < len(g.board); i++ {
 				if isPlayerCard {
@@ -79,7 +79,7 @@ func (g Game) boardToStringSlice() []string {
 	for i := 0; i < len(g.board); i++ {
 		var astr string
 		if i == len(g.board)-1 {
-			astr = string(g.board[i].suit) + fmt.Sprint(g.board[i].rank)
+			astr = string(g.board[i].Suit) + fmt.Sprint(g.board[i].Rank)
 		} else {
 			astr = "*-*"
 		}
