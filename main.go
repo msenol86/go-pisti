@@ -22,19 +22,6 @@ import (
 // foo_marshalled, err := json.Marshal(Foo{Number: 1, Title: "test"})
 // fmt.Fprint(w, string(foo_marshalled)) // write response to ResponseWriter (w)
 
-type NetworkMessage struct {
-	Board                 []string
-	DeckCount             uint8
-	PlayerHand            []Card
-	PlayerWonCardsCount   uint8
-	PlayerPistiCounts     uint8
-	PlayerPoints          uint8
-	OpponentHand          []Card
-	OpponentWonCardsCount uint8
-	OpponentPistiCounts   uint8
-	OpponentPoints        uint8
-}
-
 func fromGame(g Game, isPlayer1 bool) NetworkMessage {
 	var player Player
 	var opponent Player
@@ -48,7 +35,7 @@ func fromGame(g Game, isPlayer1 bool) NetworkMessage {
 
 	return NetworkMessage{g.boardToStringSlice(), uint8(len(g.deck)),
 		player.hand, uint8(len(player.wonCards)), uint8(player.pistiCount), uint8(player.points),
-		opponent.hand, uint8(len(opponent.wonCards)), uint8(opponent.pistiCount), uint8(opponent.points)}
+		uint8(len(opponent.hand)), uint8(len(opponent.wonCards)), uint8(opponent.pistiCount), uint8(opponent.points)}
 }
 
 type NetworkState struct {

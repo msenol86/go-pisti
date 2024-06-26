@@ -1,3 +1,3 @@
-module cards
+module pisti
 
 go 1.21.8

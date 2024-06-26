@@ -37,3 +37,16 @@ type Card struct {
 func RemoveIndex(s []Card, index int) []Card {
 	return append(s[:index], s[index+1:]...)
 }
+
+type NetworkMessage struct {
+	Board                 []string
+	DeckCount             uint8
+	PlayerHand            []Card
+	PlayerWonCardsCount   uint8
+	PlayerPistiCounts     uint8
+	PlayerPoints          uint8
+	OpponentHandCount     uint8
+	OpponentWonCardsCount uint8
+	OpponentPistiCounts   uint8
+	OpponentPoints        uint8
+}
