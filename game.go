@@ -41,16 +41,16 @@ func (g Game) handOverCards(isNewGame bool) Game {
 	return g
 }
 
-func (g Game) playCard(isPlayerCard bool, cardIndex int) Game {
+func (g Game) playCard(isPlayer1Card bool, cardIndex int) Game {
 	var selectedCard Card
-	if isPlayerCard {
+	if isPlayer1Card {
 		selectedCard = g.player1.hand[cardIndex]
 		g.player1.hand = RemoveIndex(g.player1.hand, cardIndex)
 	} else {
 		selectedCard = g.player2.hand[cardIndex]
 		g.player2.hand = RemoveIndex(g.player2.hand, cardIndex)
 	}
-	if isPlayerCard {
+	if isPlayer1Card {
 		fmt.Println("player1 played card:", selectedCard)
 	} else {
 		fmt.Println("player2 played card:", selectedCard)
@@ -61,7 +61,7 @@ func (g Game) playCard(isPlayerCard bool, cardIndex int) Game {
 		if g.board[len(g.board)-1].Rank == g.board[len(g.board)-2].Rank {
 			fmt.Println("Win!\a")
 			for i := 0; i < len(g.board); i++ {
-				if isPlayerCard {
+				if isPlayer1Card {
 					g.player1.wonCards = append(g.player1.wonCards, g.board[i])
 				} else {
 					g.player2.wonCards = append(g.player2.wonCards, g.board[i])

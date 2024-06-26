@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strconv"
 	"strings"
 )
 
@@ -27,7 +28,7 @@ func (client *Client) handleChannelMessages(data chan NetworkMessage) {
 	}
 }
 
-func (client *Client) handleRequest(joinChannel chan string) {
+func (client *Client) handleRequest(joinChannel chan string, inputChannel chan int) {
 	reader := bufio.NewReader(client.conn)
 	for {
 		message, err := reader.ReadString('\n')
@@ -36,17 +37,24 @@ func (client *Client) handleRequest(joinChannel chan string) {
 			return
 		}
 		msg_str := strings.TrimSpace(string(message))
-		// fmt.Printf("Message incoming: %s", string(msg_str))
+		fmt.Printf("Message incoming: %s", string(msg_str))
 		client.conn.Write([]byte("Message received.\n"))
 		if msg_str == "JOIN" {
 			// fmt.Printf("\nPlayer joined: %s\n", client.conn.RemoteAddr())
 			chan_message := client.conn.RemoteAddr().String()
 			joinChannel <- chan_message
+		} else if strings.HasPrefix(msg_str, "PLAY") {
+			words := strings.Split(msg_str, " ")
+			if len(words) > 1 {
+				if s, err := strconv.Atoi(words[1]); err == nil {
+					inputChannel <- s
+				}
+			}
 		}
 	}
 }
 
-func startServer(data1 chan NetworkMessage, data2 chan NetworkMessage, joinChannel chan string) {
+func startServer(data1 chan NetworkMessage, data2 chan NetworkMessage, joinChannel chan string, input1Channel chan int, input2Channel chan int) {
 	listener, err := net.Listen("tcp", ":6666")
 	if err != nil {
 		log.Fatal(err)
@@ -66,10 +74,11 @@ func startServer(data1 chan NetworkMessage, data2 chan NetworkMessage, joinChann
 		if counter < 2 {
 			clients[0] = client
 			fmt.Println("Connected clients ", counter+1)
-			go client.handleRequest(joinChannel)
 			if counter < 1 {
+				go client.handleRequest(joinChannel, input1Channel)
 				go client.handleChannelMessages(data1)
 			} else {
+				go client.handleRequest(joinChannel, input2Channel)
 				go client.handleChannelMessages(data2)
 			}
 

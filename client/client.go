@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"time"
 )
 
 const (
 	HOST = "localhost"
 	PORT = "6666"
 	TYPE = "tcp"
+	JOIN = "JOIN"
+	PLAY = "PLAY"
 )
 
 type SuitType string
@@ -49,7 +52,7 @@ func main() {
 	}
 
 	// _, err = conn.Write([]byte("This is a message\n"))
-	_, err = conn.Write([]byte("JOIN\n"))
+	_, err = conn.Write([]byte(JOIN + "\n"))
 	if err != nil {
 		println("Write data failed:", err.Error())
 		os.Exit(1)
@@ -79,14 +82,20 @@ func main() {
 		}
 		// fmt.Println("nm", nm)
 		fmt.Println("Board: ", nm.Board)
-		fmt.Println("Your Hand", nm.PlayerHand)
+		fmt.Print("Won Cards Count: ", nm.PlayerWonCardsCount)
+		fmt.Print(" - Points: ", nm.PlayerPoints)
+		fmt.Println(" - Pist Count: ", nm.PlayerPistiCounts)
+		fmt.Println("Hand", nm.PlayerHand)
+
 		fmt.Printf("Type the number of card you want to play [%d-%d]: ", 1, len(nm.PlayerHand))
-		var input string
-		fmt.Scanln(&input)
-		conn.Write([]byte(input))
+		// var input string
+		// fmt.Scanln(&input)
+		time.Sleep(2 * time.Second)
+		input := "1"
+		conn.Write([]byte(PLAY + " " + input + "\n"))
 		// if s, err := strconv.Atoi(input); err == nil {
-		// 	// fmt.Printf("%T, %v", s, s-1)
-		// 	// g = g.playCard(true, s-1)
+		// 	fmt.Printf("%T, %v", s, s-1)
+		// 	g = g.playCard(true, s-1)
 
 		// }
 	}
