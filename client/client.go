@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"time"
 )
 
 const (
@@ -57,13 +56,6 @@ func main() {
 		println("Write data failed:", err.Error())
 		os.Exit(1)
 	}
-	// st := `{"Board":["*-*","*-*","*-*","♣8"],"DeckCount":40,"PlayerHand":[{"Suit":"♠","Rank":9},{"Suit":"♦","Rank":8},{"Suit":"♠","Rank":8},{"Suit":"♦","Rank":2}],"PlayerWonCardsCount":0,"PlayerPistiCounts":0,"PlayerPoints":0,"OpponentHand":[{"Suit":"♦","Rank":3},{"Suit":"♣","Rank":9},{"Suit":"♦","Rank":7},{"Suit":"♦","Rank":6}],"OpponentWonCardsCount":0,"OpponentPistiCounts":0,"OpponentPoints":0}`
-	// var nm NetworkMessage
-	// if err := json.Unmarshal([]byte(st), &nm); err != nil {
-	// 	fmt.Println(err)
-	// }
-	// fmt.Println("nm", nm)
-
 	for {
 		// buffer to get data
 		received := make([]byte, 1024)
@@ -73,14 +65,11 @@ func main() {
 			os.Exit(1)
 		}
 
-		// println("Received message:", string(received))
-		// clean_msg := strings.TrimSpace(string(received))
 		var nm NetworkMessage
 		d := json.NewDecoder(conn)
 		if err := d.Decode(&nm); err != nil {
 			fmt.Println(err)
 		}
-		// fmt.Println("nm", nm)
 		fmt.Println("Board: ", nm.Board)
 		fmt.Print("Won Cards Count: ", nm.PlayerWonCardsCount)
 		fmt.Print(" - Points: ", nm.PlayerPoints)
@@ -88,16 +77,11 @@ func main() {
 		fmt.Println("Hand", nm.PlayerHand)
 
 		fmt.Printf("Type the number of card you want to play [%d-%d]: ", 1, len(nm.PlayerHand))
-		// var input string
-		// fmt.Scanln(&input)
-		time.Sleep(2 * time.Second)
-		input := "1"
+		// time.Sleep(2 * time.Second)
+		// input := "1"
+		var input string
+		fmt.Scanln(&input)
 		conn.Write([]byte(PLAY + " " + input + "\n"))
-		// if s, err := strconv.Atoi(input); err == nil {
-		// 	fmt.Printf("%T, %v", s, s-1)
-		// 	g = g.playCard(true, s-1)
-
-		// }
 	}
 	conn.Close()
 }

@@ -23,8 +23,6 @@ func (client *Client) handleChannelMessages(data chan NetworkMessage) {
 		}
 		fmt.Println(msg)
 		client.conn.Write([]byte(ajson))
-		// foo_marshalled, err := json.Marshal(Foo{Number: 1, Title: "test"})
-		// fmt.Fprint(w, string(foo_marshalled)) // write response to ResponseWriter (w)
 	}
 }
 
@@ -39,8 +37,9 @@ func (client *Client) handleRequest(joinChannel chan string, inputChannel chan i
 		msg_str := strings.TrimSpace(string(message))
 		fmt.Printf("Message incoming: %s", string(msg_str))
 		client.conn.Write([]byte("Message received.\n"))
+
+		// fmt.Printf("Message incoming: %s", string(msg_str))
 		if msg_str == "JOIN" {
-			// fmt.Printf("\nPlayer joined: %s\n", client.conn.RemoteAddr())
 			chan_message := client.conn.RemoteAddr().String()
 			joinChannel <- chan_message
 		} else if strings.HasPrefix(msg_str, "PLAY") {
