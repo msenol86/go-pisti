@@ -14,37 +14,6 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-const (
-	HOST = "localhost"
-	PORT = "6666"
-	TYPE = "tcp"
-	JOIN = "JOIN"
-	PLAY = "PLAY"
-)
-const UNKNOWN = "� �"
-
-type SuitType string
-type RankType int
-
-type Card struct {
-	Suit SuitType
-	Rank RankType
-}
-
-type NetworkMessage struct {
-	BoardOpenCards        []Card
-	BoardCount            uint8
-	DeckCount             uint8
-	PlayerHand            []Card
-	PlayerWonCardsCount   uint8
-	PlayerPistiCounts     uint8
-	PlayerPoints          uint8
-	OpponentHandCount     uint8
-	OpponentWonCardsCount uint8
-	OpponentPistiCounts   uint8
-	OpponentPoints        uint8
-}
-
 func handleServerConnection(c net.Conn, gameStateChannel chan NetworkMessage) {
 	for {
 		d := json.NewDecoder(c)
@@ -102,7 +71,12 @@ func updateGui(gameStateChannel chan NetworkMessage, opponentButtons [4]*widget.
 			if i < len(nm.PlayerHand) {
 				buttons[i].Show()
 				buttons[i].SetText(fmt.Sprint(nm.PlayerHand[i]))
-				buttons[i].Enable()
+				if nm.IsPlayerTurn {
+					buttons[i].Enable()
+				} else {
+					buttons[i].Disable()
+				}
+
 			} else {
 				buttons[i].Hide()
 				buttons[i].Disable()
@@ -208,7 +182,7 @@ func showGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int) 
 	w.ShowAndRun()
 }
 
-func main() {
+func runClientGui() {
 	gameStateChannel := make(chan NetworkMessage)
 	playerInputChannel := make(chan int)
 	go runClient(gameStateChannel, playerInputChannel)

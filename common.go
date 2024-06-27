@@ -1,5 +1,15 @@
 package main
 
+const (
+	HOST   = "localhost"
+	PORT   = "6666"
+	TYPE   = "tcp"
+	JOIN   = "JOIN"
+	PLAY   = "PLAY"
+	CLIENT = "CLIENT"
+)
+const UNKNOWN = "� �"
+
 type SuitType string
 type RankType int
 
@@ -50,4 +60,5 @@ type NetworkMessage struct {
 	OpponentWonCardsCount uint8
 	OpponentPistiCounts   uint8
 	OpponentPoints        uint8
+	IsPlayerTurn          bool
 }
