@@ -113,6 +113,9 @@ func main() {
 			if g.lastCardPlayed() {
 				// isGameOver = true
 				// isFirstRound = true
+				player1Channel <- fromGame(g, true, openCardCount, false, isGameOver)
+				player2Channel <- fromGame(g, false, openCardCount, false, isGameOver)
+				time.Sleep(1 * time.Second)
 				isGameOver = true
 				player1Channel <- fromGame(g, true, openCardCount, false, isGameOver)
 				player2Channel <- fromGame(g, false, openCardCount, true, isGameOver)

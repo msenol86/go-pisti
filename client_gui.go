@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -81,29 +82,56 @@ func playCardAutomaticaly(playerInputChannel chan int) {
 func updateGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int, opponentButtons [4]*widget.Button, buttons [4]*widget.Button, boardButtons [4]*widget.Button, w fyne.Window) {
 	for {
 		nm := <-gameStateChannel
-		if nm.GameOverState.IsGameOver {
-			tPlayerCards := container.NewHBox(widget.NewList(
-				func() int {
-					return len(nm.GameOverState.PlayerWonCards)
-				},
-				func() fyne.CanvasObject {
-					return widget.NewLabel("template")
-				},
-				func(i widget.ListItemID, o fyne.CanvasObject) {
-					o.(*widget.Label).SetText(nm.GameOverState.PlayerWonCards[i].toString())
-				}))
 
-			tOpponentCards := container.NewHBox(widget.NewList(
-				func() int {
-					return len(nm.GameOverState.OpponentWonCards)
-				},
-				func() fyne.CanvasObject {
-					return widget.NewLabel("template")
-				},
-				func(i widget.ListItemID, o fyne.CanvasObject) {
-					o.(*widget.Label).SetText(nm.GameOverState.OpponentWonCards[i].toString())
-				}))
-			dialog.ShowCustom("Game Over", "Finish", container.NewVBox(tPlayerCards, tOpponentCards), w)
+		if nm.GameOverState.IsGameOver {
+			sPlayerCards := []string{"Player Won Cards (" + fmt.Sprint(len(nm.GameOverState.PlayerWonCards)) + "): "}
+			sOpponentCards := []string{"Opponent Won Cards (" + fmt.Sprint(len(nm.GameOverState.OpponentWonCards)) + "): "}
+			for i := 0; i < len(nm.GameOverState.PlayerWonCards); i++ {
+				sPlayerCards = append(sPlayerCards, nm.GameOverState.PlayerWonCards[i].toString())
+				if i%10 == 9 {
+					sPlayerCards = append(sPlayerCards, "\n")
+				}
+			}
+			for i := 0; i < len(nm.GameOverState.OpponentWonCards); i++ {
+				sOpponentCards = append(sOpponentCards, nm.GameOverState.OpponentWonCards[i].toString())
+				if i%10 == 9 {
+					sOpponentCards = append(sOpponentCards, "\n")
+				}
+			}
+			// tPlayerCards := container.NewHBox(widget.NewList(
+			// 	func() int {
+			// 		return len(nm.GameOverState.PlayerWonCards)
+			// 	},
+			// 	func() fyne.CanvasObject {
+			// 		return widget.NewLabel("template")
+			// 	},
+			// 	func(i widget.ListItemID, o fyne.CanvasObject) {
+			// 		o.(*widget.Label).SetText(nm.GameOverState.PlayerWonCards[i].toString())
+			// 	}))
+			// tPlayerCards.Resize(fyne.NewSize(500, 60))
+
+			// tOpponentCards := container.NewHBox(widget.NewList(
+			// 	func() int {
+			// 		return len(nm.GameOverState.OpponentWonCards)
+			// 	},
+			// 	func() fyne.CanvasObject {
+			// 		return widget.NewLabel("template")
+			// 	},
+			// 	func(i widget.ListItemID, o fyne.CanvasObject) {
+			// 		o.(*widget.Label).SetText(nm.GameOverState.OpponentWonCards[i].toString())
+			// 	}))
+			// tOpponentCards.Resize(fyne.NewSize(500, 60))
+			playerLabel := widget.NewLabel(strings.Join(sPlayerCards, "-"))
+			opponentLabel := widget.NewLabel(strings.Join(sOpponentCards, "-"))
+			playerLabel.Resize(fyne.NewSize(400, 50))
+			opponentLabel.Resize(fyne.NewSize(400, 50))
+
+			tVbox := container.NewVBox(playerLabel, opponentLabel)
+			tVbox.Resize(fyne.NewSize(500, 150))
+
+			d := dialog.NewCustom("Game Over", "Finish", tVbox, w)
+			d.Resize(fyne.NewSize(700, 200))
+			d.Show()
 		} else {
 			// fmt.Printf("New Update State: %s\n", fmt.Sprint(nm))
 			for i := 0; i < 4; i++ {
@@ -217,7 +245,7 @@ func showGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int) 
 		boardContainer,
 		bottomContainer,
 	)
-	// w.Resize(fyne.Size{Width: 800, Height: 800})
+	w.Resize(fyne.Size{Width: 950, Height: 450})
 	w.SetContent(parentContainer)
 
 	go updateGui(gameStateChannel, playerInputChannel, opponentButtons, buttons, boardButtons, w)
