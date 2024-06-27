@@ -8,9 +8,12 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"time"
 
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -70,45 +73,76 @@ func reverseCards(input []Card) []Card {
 	return append(reverseCards(input[1:]), input[0])
 }
 
-func updateGui(gameStateChannel chan NetworkMessage, opponentButtons [4]*widget.Button, buttons [4]*widget.Button, boardButtons [4]*widget.Button) {
+func playCardAutomaticaly(playerInputChannel chan int) {
+	time.Sleep(1 * time.Second)
+	playerInputChannel <- 1
+}
+
+func updateGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int, opponentButtons [4]*widget.Button, buttons [4]*widget.Button, boardButtons [4]*widget.Button, w fyne.Window) {
 	for {
 		nm := <-gameStateChannel
-		// fmt.Printf("New Update State: %s\n", fmt.Sprint(nm))
-		for i := 0; i < 4; i++ {
-			if i < len(nm.PlayerHand) {
-				buttons[i].Show()
-				buttons[i].SetText(nm.PlayerHand[i].toString())
-				if nm.IsPlayerTurn {
-					buttons[i].Enable()
+		if nm.GameOverState.IsGameOver {
+			tPlayerCards := container.NewHBox(widget.NewList(
+				func() int {
+					return len(nm.GameOverState.PlayerWonCards)
+				},
+				func() fyne.CanvasObject {
+					return widget.NewLabel("template")
+				},
+				func(i widget.ListItemID, o fyne.CanvasObject) {
+					o.(*widget.Label).SetText(nm.GameOverState.PlayerWonCards[i].toString())
+				}))
+
+			tOpponentCards := container.NewHBox(widget.NewList(
+				func() int {
+					return len(nm.GameOverState.OpponentWonCards)
+				},
+				func() fyne.CanvasObject {
+					return widget.NewLabel("template")
+				},
+				func(i widget.ListItemID, o fyne.CanvasObject) {
+					o.(*widget.Label).SetText(nm.GameOverState.OpponentWonCards[i].toString())
+				}))
+			dialog.ShowCustom("Game Over", "Finish", container.NewVBox(tPlayerCards, tOpponentCards), w)
+		} else {
+			// fmt.Printf("New Update State: %s\n", fmt.Sprint(nm))
+			for i := 0; i < 4; i++ {
+				if i < len(nm.PlayerHand) {
+					buttons[i].Show()
+					buttons[i].SetText(nm.PlayerHand[i].toString())
+					if nm.IsPlayerTurn {
+						buttons[i].Enable()
+						go playCardAutomaticaly(playerInputChannel)
+					} else {
+						buttons[i].Disable()
+					}
+
 				} else {
+					buttons[i].Hide()
 					buttons[i].Disable()
 				}
+				buttons[i].Refresh()
+			}
+			for i := 0; i < 4; i++ {
+				if i < int(nm.OpponentHandCount) {
+					opponentButtons[i].Show()
+				} else {
+					opponentButtons[i].Hide()
+				}
+				opponentButtons[i].Refresh()
+			}
 
-			} else {
-				buttons[i].Hide()
-				buttons[i].Disable()
+			reversedOpenCards := reverseCards(nm.BoardOpenCards)
+			fmt.Println(nm.BoardOpenCards)
+			fmt.Println(reversedOpenCards)
+			for i := 0; i < 4; i++ {
+				if i < len(reversedOpenCards) {
+					boardButtons[i].SetText(reversedOpenCards[i].toString())
+				} else {
+					boardButtons[i].SetText(UNKNOWN)
+				}
+				boardButtons[i].Refresh()
 			}
-			buttons[i].Refresh()
-		}
-		for i := 0; i < 4; i++ {
-			if i < int(nm.OpponentHandCount) {
-				opponentButtons[i].Show()
-			} else {
-				opponentButtons[i].Hide()
-			}
-			opponentButtons[i].Refresh()
-		}
-
-		reversedOpenCards := reverseCards(nm.BoardOpenCards)
-		fmt.Println(nm.BoardOpenCards)
-		fmt.Println(reversedOpenCards)
-		for i := 0; i < 4; i++ {
-			if i < len(reversedOpenCards) {
-				boardButtons[i].SetText(reversedOpenCards[i].toString())
-			} else {
-				boardButtons[i].SetText(UNKNOWN)
-			}
-			boardButtons[i].Refresh()
 		}
 	}
 }
@@ -157,7 +191,6 @@ func showGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int) 
 		widget.NewButton(UNKNOWN, func() {
 
 		})}
-
 	for i := 0; i < len(buttons); i++ {
 		buttons[i].Disable()
 		boardButtons[i].Disable()
@@ -187,7 +220,7 @@ func showGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int) 
 	// w.Resize(fyne.Size{Width: 800, Height: 800})
 	w.SetContent(parentContainer)
 
-	go updateGui(gameStateChannel, opponentButtons, buttons, boardButtons)
+	go updateGui(gameStateChannel, playerInputChannel, opponentButtons, buttons, boardButtons, w)
 	w.ShowAndRun()
 }
 

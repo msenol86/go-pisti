@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func fromGame(g Game, isPlayer1 bool, openCardCount int, isPlayerTurn bool) NetworkMessage {
+func fromGame(g Game, isPlayer1 bool, openCardCount int, isPlayerTurn bool, isGameOver bool) NetworkMessage {
 	var player Player
 	var opponent Player
 	if isPlayer1 {
@@ -17,9 +17,14 @@ func fromGame(g Game, isPlayer1 bool, openCardCount int, isPlayerTurn bool) Netw
 		opponent = g.player1
 	}
 
+	gom := GameOverMessage{IsGameOver: false, PlayerWonCards: []Card{}, OpponentWonCards: []Card{}}
+	if isGameOver {
+		gom = GameOverMessage{IsGameOver: true, PlayerWonCards: player.wonCards, OpponentWonCards: opponent.wonCards}
+	}
+
 	return NetworkMessage{g.getBoardOpenCards(openCardCount), uint8(len(g.board)), uint8(len(g.deck)),
 		player.hand, uint8(len(player.wonCards)), uint8(player.pistiCount), uint8(player.points),
-		uint8(len(opponent.hand)), uint8(len(opponent.wonCards)), uint8(opponent.pistiCount), uint8(opponent.points), isPlayerTurn}
+		uint8(len(opponent.hand)), uint8(len(opponent.wonCards)), uint8(opponent.pistiCount), uint8(opponent.points), isPlayerTurn, gom}
 }
 
 type NetworkState struct {
@@ -69,9 +74,12 @@ func main() {
 
 			if isFirstRound {
 				openCardCount = 1
-				player2Channel <- fromGame(g, true, openCardCount, false)
+				player1Channel <- fromGame(g, true, openCardCount, false, isGameOver)
+				player2Channel <- fromGame(g, false, openCardCount, false, isGameOver)
+				time.Sleep(1 * time.Second)
 			}
-			player1Channel <- fromGame(g, true, openCardCount, true)
+
+			player1Channel <- fromGame(g, true, openCardCount, true, isGameOver)
 			s1 := <-player1InputChannel
 			for len(player1InputChannel) > 0 {
 				<-player1InputChannel
@@ -82,8 +90,8 @@ func main() {
 			}
 
 			g = g.playCard(true, s1-1)
-			player1Channel <- fromGame(g, true, openCardCount, false)
-			player2Channel <- fromGame(g, false, openCardCount, true)
+			player1Channel <- fromGame(g, true, openCardCount, false, isGameOver)
+			player2Channel <- fromGame(g, false, openCardCount, true, isGameOver)
 			s2 := <-player2InputChannel
 			for len(player2InputChannel) > 0 {
 				<-player2InputChannel
@@ -95,15 +103,24 @@ func main() {
 			isFirstRound = false
 
 			g = g.playCard(false, s2-1)
-			player2Channel <- fromGame(g, false, openCardCount, false)
+			player2Channel <- fromGame(g, false, openCardCount, false, isGameOver)
 			if len(g.deck) > 7 && len(g.player1.hand) < 1 && len(g.player2.hand) < 1 {
-
 				g = g.handOverCards(false)
+				player1Channel <- fromGame(g, true, openCardCount, false, isGameOver)
+				player2Channel <- fromGame(g, false, openCardCount, false, isGameOver)
+				time.Sleep(1 * time.Second)
 			}
 			if g.lastCardPlayed() {
+				// isGameOver = true
+				// isFirstRound = true
 				isGameOver = true
-				isFirstRound = true
+				player1Channel <- fromGame(g, true, openCardCount, false, isGameOver)
+				player2Channel <- fromGame(g, false, openCardCount, true, isGameOver)
 			}
+		}
+		for {
+			msg := <-playerJoinChannel
+			fmt.Println(msg)
 		}
 	}
 }

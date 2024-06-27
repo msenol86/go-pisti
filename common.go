@@ -73,6 +73,12 @@ func RemoveIndex(s []Card, index int) []Card {
 	return append(s[:index], s[index+1:]...)
 }
 
+type GameOverMessage struct {
+	IsGameOver       bool
+	PlayerWonCards   []Card
+	OpponentWonCards []Card
+}
+
 type NetworkMessage struct {
 	BoardOpenCards        []Card
 	BoardCount            uint8
@@ -86,4 +92,5 @@ type NetworkMessage struct {
 	OpponentPistiCounts   uint8
 	OpponentPoints        uint8
 	IsPlayerTurn          bool
+	GameOverState         GameOverMessage
 }
