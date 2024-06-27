@@ -36,7 +36,7 @@ func (client *Client) handleRequest(joinChannel chan string, inputChannel chan i
 		}
 		msg_str := strings.TrimSpace(string(message))
 		fmt.Printf("Message incoming: %s", string(msg_str))
-		client.conn.Write([]byte("Message received.\n"))
+		// client.conn.Write([]byte("Message received.\n"))
 
 		// fmt.Printf("Message incoming: %s", string(msg_str))
 		if msg_str == "JOIN" {

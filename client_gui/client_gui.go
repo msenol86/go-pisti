@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net"
 	"os"
 	"strconv"
@@ -43,6 +45,31 @@ type NetworkMessage struct {
 	OpponentPoints        uint8
 }
 
+func handleServerConnection(c net.Conn, gameStateChannel chan NetworkMessage) {
+	for {
+		d := json.NewDecoder(c)
+
+		for {
+			var msg NetworkMessage
+			if err := d.Decode(&msg); err == io.EOF {
+				break
+			} else if err != nil {
+				log.Fatal(err)
+			}
+			gameStateChannel <- msg
+
+		}
+	}
+	c.Close()
+}
+
+func handlePlayerInput(c net.Conn, playerInputChannel chan int) {
+	for {
+		input := <-playerInputChannel
+		c.Write([]byte(PLAY + " " + strconv.Itoa(input) + "\n"))
+	}
+}
+
 func runClient(gameStateChannel chan NetworkMessage, playerInputChannel chan int) {
 	tcpServer, err := net.ResolveTCPAddr(TYPE, HOST+":"+PORT)
 
@@ -63,50 +90,14 @@ func runClient(gameStateChannel chan NetworkMessage, playerInputChannel chan int
 		println("Write data failed:", err.Error())
 		os.Exit(1)
 	}
-	for {
-		// buffer to get data
-		received := make([]byte, 1024)
-		_, err = conn.Read(received)
-		if err != nil {
-			println("Read data failed:", err.Error())
-			os.Exit(1)
-		}
-
-		var nm NetworkMessage
-		d := json.NewDecoder(conn)
-		if err := d.Decode(&nm); err != nil {
-			fmt.Println(err)
-		}
-		// boardArray := []string{}
-		// for i := 0; i < int(nm.BoardCount); i++ {
-		// 	if i >= int(nm.BoardCount)-len(nm.BoardOpenCards) {
-		// 		theCard := nm.BoardOpenCards[i-(int(nm.BoardCount)-len(nm.BoardOpenCards))]
-		// 		boardArray = append(boardArray, fmt.Sprint(theCard))
-		// 	} else {
-		// 		boardArray = append(boardArray, "{* *}")
-		// 	}
-		// }
-		gameStateChannel <- nm
-		// fmt.Print("Won Cards Count: ", nm.PlayerWonCardsCount)
-		// fmt.Print(" - Points: ", nm.PlayerPoints)
-		// fmt.Println(" - Pist Count: ", nm.PlayerPistiCounts)
-		// fmt.Println("Board: ", boardArray)
-		// fmt.Println("Hand", nm.PlayerHand)
-
-		// fmt.Printf("Type the number of card you want to play [%d-%d]: ", 1, len(nm.PlayerHand))
-		// time.Sleep(2 * time.Second)
-		// input := "1"
-		// var input string
-		// fmt.Scanln(&input)
-		input := <-playerInputChannel
-		conn.Write([]byte(PLAY + " " + strconv.Itoa(input) + "\n"))
-	}
-	conn.Close()
+	go handleServerConnection(conn, gameStateChannel)
+	go handlePlayerInput(conn, playerInputChannel)
 }
 
 func updateGui(gameStateChannel chan NetworkMessage, opponentButtons [4]*widget.Button, buttons [4]*widget.Button, boardButtons [4]*widget.Button) {
 	for {
 		nm := <-gameStateChannel
+		// fmt.Printf("New Update State: %s\n", fmt.Sprint(nm))
 		for i := 0; i < 4; i++ {
 			if i < len(nm.PlayerHand) {
 				buttons[i].Show()
