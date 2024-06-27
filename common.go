@@ -11,6 +11,7 @@ const (
 	JOIN   = "JOIN"
 	PLAY   = "PLAY"
 	CLIENT = "CLIENT"
+	AI     = "AI"
 )
 const UNKNOWN = "� �"
 

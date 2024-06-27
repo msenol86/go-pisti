@@ -75,7 +75,7 @@ func reverseCards(input []Card) []Card {
 }
 
 func playCardAutomaticaly(playerInputChannel chan int) {
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	playerInputChannel <- 1
 }
 
@@ -140,7 +140,10 @@ func updateGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int
 					buttons[i].SetText(nm.PlayerHand[i].toString())
 					if nm.IsPlayerTurn {
 						buttons[i].Enable()
-						go playCardAutomaticaly(playerInputChannel)
+						tAI := os.Getenv("AI")
+						if tAI == AI {
+							go playCardAutomaticaly(playerInputChannel)
+						}
 					} else {
 						buttons[i].Disable()
 					}
