@@ -19,6 +19,7 @@ const (
 	JOIN = "JOIN"
 	PLAY = "PLAY"
 )
+const UNKNOWN = "� �"
 
 type SuitType string
 type RankType int
@@ -103,71 +104,89 @@ func runClient(gameStateChannel chan NetworkMessage, playerInputChannel chan int
 	conn.Close()
 }
 
-func updateGui(gameStateChannel chan NetworkMessage, opponentButtons [4]*widget.Button, buttons [4]*widget.Button) {
-	nm := <-gameStateChannel
-	for i := 0; i < 4; i++ {
-		if i < len(nm.PlayerHand) {
-			buttons[i].Show()
-			buttons[i].SetText(fmt.Sprint(nm.PlayerHand[i]))
-			buttons[i].Enable()
-		} else {
-			buttons[i].Hide()
-			buttons[i].Disable()
+func updateGui(gameStateChannel chan NetworkMessage, opponentButtons [4]*widget.Button, buttons [4]*widget.Button, boardButtons [4]*widget.Button) {
+	for {
+		nm := <-gameStateChannel
+		for i := 0; i < 4; i++ {
+			if i < len(nm.PlayerHand) {
+				buttons[i].Show()
+				buttons[i].SetText(fmt.Sprint(nm.PlayerHand[i]))
+				buttons[i].Enable()
+			} else {
+				buttons[i].Hide()
+				buttons[i].Disable()
+			}
+			buttons[i].Refresh()
 		}
-		buttons[i].Refresh()
+		for i := 0; i < 4; i++ {
+			if i < int(nm.OpponentHandCount) {
+				opponentButtons[i].Show()
+			} else {
+				opponentButtons[i].Hide()
+			}
+			opponentButtons[i].Refresh()
+		}
+
+		for i := 0; i < min(4, int(nm.BoardCount)); i++ {
+			if i < len(nm.BoardOpenCards) {
+				boardButtons[i].Show()
+				boardButtons[i].SetText(fmt.Sprint(nm.BoardOpenCards[i]))
+			} else {
+				boardButtons[i].SetText(UNKNOWN)
+			}
+			boardButtons[i].Refresh()
+		}
 	}
 }
 
 func showGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int) {
 	a := app.New()
-	w := a.NewWindow("Hello")
+	w := a.NewWindow("Pisti")
 
-	// hello := widget.NewLabel("Hello Fyne!")
 	opponentButtons := [4]*widget.Button{
-		widget.NewButton("* *", func() {
+		widget.NewButton(UNKNOWN, func() {
 
 		}),
-		widget.NewButton("* *", func() {
+		widget.NewButton(UNKNOWN, func() {
 
 		}),
-		widget.NewButton("* *", func() {
+		widget.NewButton(UNKNOWN, func() {
 
 		}),
-		widget.NewButton("* *", func() {
+		widget.NewButton(UNKNOWN, func() {
 
 		})}
 	buttons := [4]*widget.Button{
-		widget.NewButton("* *", func() {
+		widget.NewButton(UNKNOWN, func() {
 			playerInputChannel <- 1
 		}),
-		widget.NewButton("* *", func() {
+		widget.NewButton(UNKNOWN, func() {
 			playerInputChannel <- 2
 		}),
-		widget.NewButton("* *", func() {
+		widget.NewButton(UNKNOWN, func() {
 			playerInputChannel <- 3
 		}),
-		widget.NewButton("* *", func() {
+		widget.NewButton(UNKNOWN, func() {
 			playerInputChannel <- 4
 		})}
 
 	boardButtons := [4]*widget.Button{
-		widget.NewButton("* *", func() {
+		widget.NewButton(UNKNOWN, func() {
 
 		}),
-		widget.NewButton("* *", func() {
+		widget.NewButton(UNKNOWN, func() {
 
 		}),
-		widget.NewButton("* *", func() {
+		widget.NewButton(UNKNOWN, func() {
 
 		}),
-		widget.NewButton("* *", func() {
+		widget.NewButton(UNKNOWN, func() {
 
 		})}
 
 	for i := 0; i < len(buttons); i++ {
 		buttons[i].Disable()
 		boardButtons[i].Disable()
-		// buttons[i].Hide()
 		opponentButtons[i].Disable()
 	}
 	topContainer := container.NewHBox(
@@ -194,21 +213,7 @@ func showGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int) 
 	// w.Resize(fyne.Size{Width: 800, Height: 800})
 	w.SetContent(parentContainer)
 
-	// counter := 0
-	// go func() {
-	// 	for {
-	// 		time.Sleep(time.Second * 2)
-	// 		// str.Set("A new string " + fmt.Sprint(counter))
-	// 		// buttonTexts[0] = "TEST"
-	// 		buttons[counter].SetText("Test")
-	// 		buttons[counter].Refresh()
-	// 		counter += 1
-	// 		if counter > 4 {
-	// 			break
-	// 		}
-	// 	}
-	// }()
-	go updateGui(gameStateChannel, opponentButtons, buttons)
+	go updateGui(gameStateChannel, opponentButtons, buttons, boardButtons)
 	w.ShowAndRun()
 }
 
