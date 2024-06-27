@@ -6,7 +6,6 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"time"
 
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -104,59 +103,118 @@ func runClient(gameStateChannel chan NetworkMessage, playerInputChannel chan int
 	conn.Close()
 }
 
+func updateGui(gameStateChannel chan NetworkMessage, opponentButtons [4]*widget.Button, buttons [4]*widget.Button) {
+	nm := <-gameStateChannel
+	for i := 0; i < 4; i++ {
+		if i < len(nm.PlayerHand) {
+			buttons[i].Show()
+			buttons[i].SetText(fmt.Sprint(nm.PlayerHand[i]))
+			buttons[i].Enable()
+		} else {
+			buttons[i].Hide()
+			buttons[i].Disable()
+		}
+		buttons[i].Refresh()
+	}
+}
+
 func showGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int) {
 	a := app.New()
 	w := a.NewWindow("Hello")
 
-	hello := widget.NewLabel("Hello Fyne!")
-	buttonTexts := [4]string{"* *", "* *", "* *", "* *"}
+	// hello := widget.NewLabel("Hello Fyne!")
+	opponentButtons := [4]*widget.Button{
+		widget.NewButton("* *", func() {
+
+		}),
+		widget.NewButton("* *", func() {
+
+		}),
+		widget.NewButton("* *", func() {
+
+		}),
+		widget.NewButton("* *", func() {
+
+		})}
 	buttons := [4]*widget.Button{
-		widget.NewButton(buttonTexts[0], func() {
+		widget.NewButton("* *", func() {
 			playerInputChannel <- 1
 		}),
-		widget.NewButton(buttonTexts[1], func() {
+		widget.NewButton("* *", func() {
 			playerInputChannel <- 2
 		}),
-		widget.NewButton(buttonTexts[2], func() {
+		widget.NewButton("* *", func() {
 			playerInputChannel <- 3
 		}),
-		widget.NewButton(buttonTexts[3], func() {
+		widget.NewButton("* *", func() {
 			playerInputChannel <- 4
 		})}
-	w.SetContent(container.NewHBox(
-		hello,
+
+	boardButtons := [4]*widget.Button{
+		widget.NewButton("* *", func() {
+
+		}),
+		widget.NewButton("* *", func() {
+
+		}),
+		widget.NewButton("* *", func() {
+
+		}),
+		widget.NewButton("* *", func() {
+
+		})}
+
+	for i := 0; i < len(buttons); i++ {
+		buttons[i].Disable()
+		boardButtons[i].Disable()
+		// buttons[i].Hide()
+		opponentButtons[i].Disable()
+	}
+	topContainer := container.NewHBox(
+		opponentButtons[0],
+		opponentButtons[1],
+		opponentButtons[2],
+		opponentButtons[3])
+	boardContainer := container.NewHBox(
+		boardButtons[0],
+		boardButtons[1],
+		boardButtons[2],
+		boardButtons[3])
+	bottomContainer := container.NewHBox(
 		buttons[0],
 		buttons[1],
 		buttons[2],
 		buttons[3],
-	))
-	// str := binding.NewString()
-	// str.Set("Initial value")
+	)
+	parentContainer := container.NewVBox(
+		topContainer,
+		boardContainer,
+		bottomContainer,
+	)
+	// w.Resize(fyne.Size{Width: 800, Height: 800})
+	w.SetContent(parentContainer)
 
-	// text := widget.NewLabelWithData(str)
-	// w.SetContent(text)
-
-	counter := 0
-	go func() {
-		for {
-			time.Sleep(time.Second * 2)
-			// str.Set("A new string " + fmt.Sprint(counter))
-			// buttonTexts[0] = "TEST"
-			buttons[counter].SetText("Test")
-			buttons[counter].Refresh()
-			counter += 1
-			if counter > 4 {
-				break
-			}
-		}
-	}()
-
+	// counter := 0
+	// go func() {
+	// 	for {
+	// 		time.Sleep(time.Second * 2)
+	// 		// str.Set("A new string " + fmt.Sprint(counter))
+	// 		// buttonTexts[0] = "TEST"
+	// 		buttons[counter].SetText("Test")
+	// 		buttons[counter].Refresh()
+	// 		counter += 1
+	// 		if counter > 4 {
+	// 			break
+	// 		}
+	// 	}
+	// }()
+	go updateGui(gameStateChannel, opponentButtons, buttons)
 	w.ShowAndRun()
 }
 
 func main() {
 	gameStateChannel := make(chan NetworkMessage)
 	playerInputChannel := make(chan int)
-	// go runClient(gameStateChannel, playerInputChannel)
+	go runClient(gameStateChannel, playerInputChannel)
 	showGui(gameStateChannel, playerInputChannel)
 }
