@@ -100,7 +100,7 @@ func main() {
 
 				g = g.handOverCards(false)
 			}
-			if len(g.deck) == 0 && len(g.player1.hand) == 0 && len(g.player2.hand) == 0 {
+			if g.lastCardPlayed() {
 				isGameOver = true
 				isFirstRound = true
 			}

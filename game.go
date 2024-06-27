@@ -58,7 +58,7 @@ func (g Game) playCard(isPlayer1Card bool, cardIndex int) Game {
 
 	g.board = append(g.board, selectedCard)
 	if len(g.board) > 1 {
-		if g.board[len(g.board)-1].Rank == g.board[len(g.board)-2].Rank {
+		if g.lastCardPlayed() || g.board[len(g.board)-1].Rank == J || g.board[len(g.board)-1].Rank == g.board[len(g.board)-2].Rank {
 			fmt.Println("Win!\a")
 			for i := 0; i < len(g.board); i++ {
 				if isPlayer1Card {
@@ -97,4 +97,12 @@ func (g Game) getBoardOpenCards(openCardCount int) []Card {
 		}
 	}
 	return cards
+}
+
+func (g Game) lastCardPlayed() bool {
+	if len(g.deck) == 0 && len(g.player1.hand) == 0 && len(g.player2.hand) == 0 {
+		return true
+	} else {
+		return false
+	}
 }

@@ -77,7 +77,7 @@ func updateGui(gameStateChannel chan NetworkMessage, opponentButtons [4]*widget.
 		for i := 0; i < 4; i++ {
 			if i < len(nm.PlayerHand) {
 				buttons[i].Show()
-				buttons[i].SetText(fmt.Sprint(nm.PlayerHand[i]))
+				buttons[i].SetText(nm.PlayerHand[i].toString())
 				if nm.IsPlayerTurn {
 					buttons[i].Enable()
 				} else {
@@ -104,7 +104,7 @@ func updateGui(gameStateChannel chan NetworkMessage, opponentButtons [4]*widget.
 		fmt.Println(reversedOpenCards)
 		for i := 0; i < 4; i++ {
 			if i < len(reversedOpenCards) {
-				boardButtons[i].SetText(fmt.Sprint(reversedOpenCards[i]))
+				boardButtons[i].SetText(reversedOpenCards[i].toString())
 			} else {
 				boardButtons[i].SetText(UNKNOWN)
 			}

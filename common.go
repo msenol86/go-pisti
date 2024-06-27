@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 const (
 	HOST   = "localhost"
 	PORT   = "6666"
@@ -42,6 +46,27 @@ const (
 type Card struct {
 	Suit SuitType
 	Rank RankType
+}
+
+func (r RankType) toString() string {
+	switch r {
+	case 1:
+		return "A"
+	case 11:
+		return "J"
+	case 12:
+		return "Q"
+	case 13:
+		return "K"
+	default:
+		return fmt.Sprint(r)
+	}
+}
+
+func (c Card) toString() string {
+
+	suit := fmt.Sprint(c.Suit)
+	return suit + " " + c.Rank.toString()
 }
 
 func RemoveIndex(s []Card, index int) []Card {
