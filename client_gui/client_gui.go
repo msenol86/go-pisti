@@ -5,6 +5,11 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"time"
+
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
 )
 
 const (
@@ -24,7 +29,8 @@ type Card struct {
 }
 
 type NetworkMessage struct {
-	Board                 []string
+	BoardOpenCards        []Card
+	BoardCount            uint8
 	DeckCount             uint8
 	PlayerHand            []Card
 	PlayerWonCardsCount   uint8
@@ -36,7 +42,7 @@ type NetworkMessage struct {
 	OpponentPoints        uint8
 }
 
-func main() {
+func runClient() {
 	tcpServer, err := net.ResolveTCPAddr(TYPE, HOST+":"+PORT)
 
 	if err != nil {
@@ -70,18 +76,47 @@ func main() {
 		if err := d.Decode(&nm); err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println("Board: ", nm.Board)
+		boardArray := []string{}
+		for i := 0; i < int(nm.BoardCount); i++ {
+			if i >= int(nm.BoardCount)-len(nm.BoardOpenCards) {
+				theCard := nm.BoardOpenCards[i-(int(nm.BoardCount)-len(nm.BoardOpenCards))]
+				boardArray = append(boardArray, fmt.Sprint(theCard))
+			} else {
+				boardArray = append(boardArray, "{* *}")
+			}
+		}
 		fmt.Print("Won Cards Count: ", nm.PlayerWonCardsCount)
 		fmt.Print(" - Points: ", nm.PlayerPoints)
 		fmt.Println(" - Pist Count: ", nm.PlayerPistiCounts)
+		fmt.Println("Board: ", boardArray)
 		fmt.Println("Hand", nm.PlayerHand)
 
 		fmt.Printf("Type the number of card you want to play [%d-%d]: ", 1, len(nm.PlayerHand))
-		// time.Sleep(2 * time.Second)
-		// input := "1"
-		var input string
-		fmt.Scanln(&input)
+		time.Sleep(2 * time.Second)
+		input := "1"
+		// var input string
+		// fmt.Scanln(&input)
 		conn.Write([]byte(PLAY + " " + input + "\n"))
 	}
 	conn.Close()
+}
+
+func showGui() {
+	a := app.New()
+	w := a.NewWindow("Hello")
+
+	hello := widget.NewLabel("Hello Fyne!")
+	w.SetContent(container.NewVBox(
+		hello,
+		widget.NewButton("Hi!", func() {
+			hello.SetText("Welcome :)")
+		}),
+	))
+
+	w.ShowAndRun()
+}
+
+func main() {
+	go runClient()
+	showGui()
 }
