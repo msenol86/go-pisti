@@ -88,3 +88,13 @@ func (g Game) boardToStringSlice() []string {
 	}
 	return db
 }
+
+func (g Game) getBoardOpenCards(openCardCount int) []Card {
+	cards := []Card{}
+	for i := openCardCount; i > 0; i-- {
+		if len(g.board)-i > -1 {
+			cards = append(cards, g.board[len(g.board)-i])
+		}
+	}
+	return cards
+}

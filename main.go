@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func fromGame(g Game, isPlayer1 bool) NetworkMessage {
+func fromGame(g Game, isPlayer1 bool, openCardCount int) NetworkMessage {
 	var player Player
 	var opponent Player
 	if isPlayer1 {
@@ -16,7 +16,7 @@ func fromGame(g Game, isPlayer1 bool) NetworkMessage {
 		opponent = g.player1
 	}
 
-	return NetworkMessage{g.boardToStringSlice(), uint8(len(g.deck)),
+	return NetworkMessage{g.getBoardOpenCards(openCardCount), uint8(len(g.board)), uint8(len(g.deck)),
 		player.hand, uint8(len(player.wonCards)), uint8(player.pistiCount), uint8(player.points),
 		uint8(len(opponent.hand)), uint8(len(opponent.wonCards)), uint8(opponent.pistiCount), uint8(opponent.points)}
 }
@@ -58,18 +58,31 @@ func main() {
 	fmt.Printf("Player 2 %s\n", ns.player2_addr)
 	g := createAndStartGame()
 	isGameOver := false
+	isFirstRound := true
 	for !isGameOver {
-		player1Channel <- fromGame(g, true)
+		var openCardCount int = 3
+
+		if isFirstRound {
+			openCardCount = 1
+		}
+		player1Channel <- fromGame(g, true, openCardCount)
 		s1 := <-player1InputChannel
 		for len(player1InputChannel) > 0 {
 			<-player1InputChannel
 		}
+
+		if isFirstRound {
+			openCardCount = 2
+		}
 		g = g.playCard(true, s1-1)
-		player2Channel <- fromGame(g, false)
+		player2Channel <- fromGame(g, false, openCardCount)
 		s2 := <-player2InputChannel
 		for len(player2InputChannel) > 0 {
 			<-player2InputChannel
 		}
+
+		isFirstRound = false
+
 		g = g.playCard(false, s2-1)
 		if len(g.deck) > 7 && len(g.player1.hand) < 1 && len(g.player2.hand) < 1 {
 
@@ -77,6 +90,7 @@ func main() {
 		}
 		if len(g.deck) == 0 && len(g.player1.hand) == 0 && len(g.player2.hand) == 0 {
 			isGameOver = true
+			isFirstRound = true
 		}
 	}
 }

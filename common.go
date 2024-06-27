@@ -39,7 +39,8 @@ func RemoveIndex(s []Card, index int) []Card {
 }
 
 type NetworkMessage struct {
-	Board                 []string
+	BoardOpenCards        []Card
+	BoardCount            uint8
 	DeckCount             uint8
 	PlayerHand            []Card
 	PlayerWonCardsCount   uint8
