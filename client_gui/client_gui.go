@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"time"
 
 	"fyne.io/fyne/v2/app"
@@ -42,7 +43,7 @@ type NetworkMessage struct {
 	OpponentPoints        uint8
 }
 
-func runClient() {
+func runClient(gameStateChannel chan NetworkMessage, playerInputChannel chan int) {
 	tcpServer, err := net.ResolveTCPAddr(TYPE, HOST+":"+PORT)
 
 	if err != nil {
@@ -76,47 +77,86 @@ func runClient() {
 		if err := d.Decode(&nm); err != nil {
 			fmt.Println(err)
 		}
-		boardArray := []string{}
-		for i := 0; i < int(nm.BoardCount); i++ {
-			if i >= int(nm.BoardCount)-len(nm.BoardOpenCards) {
-				theCard := nm.BoardOpenCards[i-(int(nm.BoardCount)-len(nm.BoardOpenCards))]
-				boardArray = append(boardArray, fmt.Sprint(theCard))
-			} else {
-				boardArray = append(boardArray, "{* *}")
-			}
-		}
-		fmt.Print("Won Cards Count: ", nm.PlayerWonCardsCount)
-		fmt.Print(" - Points: ", nm.PlayerPoints)
-		fmt.Println(" - Pist Count: ", nm.PlayerPistiCounts)
-		fmt.Println("Board: ", boardArray)
-		fmt.Println("Hand", nm.PlayerHand)
+		// boardArray := []string{}
+		// for i := 0; i < int(nm.BoardCount); i++ {
+		// 	if i >= int(nm.BoardCount)-len(nm.BoardOpenCards) {
+		// 		theCard := nm.BoardOpenCards[i-(int(nm.BoardCount)-len(nm.BoardOpenCards))]
+		// 		boardArray = append(boardArray, fmt.Sprint(theCard))
+		// 	} else {
+		// 		boardArray = append(boardArray, "{* *}")
+		// 	}
+		// }
+		gameStateChannel <- nm
+		// fmt.Print("Won Cards Count: ", nm.PlayerWonCardsCount)
+		// fmt.Print(" - Points: ", nm.PlayerPoints)
+		// fmt.Println(" - Pist Count: ", nm.PlayerPistiCounts)
+		// fmt.Println("Board: ", boardArray)
+		// fmt.Println("Hand", nm.PlayerHand)
 
-		fmt.Printf("Type the number of card you want to play [%d-%d]: ", 1, len(nm.PlayerHand))
-		time.Sleep(2 * time.Second)
-		input := "1"
+		// fmt.Printf("Type the number of card you want to play [%d-%d]: ", 1, len(nm.PlayerHand))
+		// time.Sleep(2 * time.Second)
+		// input := "1"
 		// var input string
 		// fmt.Scanln(&input)
-		conn.Write([]byte(PLAY + " " + input + "\n"))
+		input := <-playerInputChannel
+		conn.Write([]byte(PLAY + " " + strconv.Itoa(input) + "\n"))
 	}
 	conn.Close()
 }
 
-func showGui() {
+func showGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int) {
 	a := app.New()
 	w := a.NewWindow("Hello")
 
 	hello := widget.NewLabel("Hello Fyne!")
-	w.SetContent(container.NewVBox(
-		hello,
-		widget.NewButton("Hi!", func() {
-			hello.SetText("Welcome :)")
+	buttonTexts := [4]string{"* *", "* *", "* *", "* *"}
+	buttons := [4]*widget.Button{
+		widget.NewButton(buttonTexts[0], func() {
+			playerInputChannel <- 1
 		}),
+		widget.NewButton(buttonTexts[1], func() {
+			playerInputChannel <- 2
+		}),
+		widget.NewButton(buttonTexts[2], func() {
+			playerInputChannel <- 3
+		}),
+		widget.NewButton(buttonTexts[3], func() {
+			playerInputChannel <- 4
+		})}
+	w.SetContent(container.NewHBox(
+		hello,
+		buttons[0],
+		buttons[1],
+		buttons[2],
+		buttons[3],
 	))
+	// str := binding.NewString()
+	// str.Set("Initial value")
+
+	// text := widget.NewLabelWithData(str)
+	// w.SetContent(text)
+
+	counter := 0
+	go func() {
+		for {
+			time.Sleep(time.Second * 2)
+			// str.Set("A new string " + fmt.Sprint(counter))
+			// buttonTexts[0] = "TEST"
+			buttons[counter].SetText("Test")
+			buttons[counter].Refresh()
+			counter += 1
+			if counter > 4 {
+				break
+			}
+		}
+	}()
 
 	w.ShowAndRun()
 }
 
 func main() {
-	go runClient()
-	showGui()
+	gameStateChannel := make(chan NetworkMessage)
+	playerInputChannel := make(chan int)
+	// go runClient(gameStateChannel, playerInputChannel)
+	showGui(gameStateChannel, playerInputChannel)
 }
