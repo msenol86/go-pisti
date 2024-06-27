@@ -63,6 +63,13 @@ func runClient(gameStateChannel chan NetworkMessage, playerInputChannel chan int
 	go handlePlayerInput(conn, playerInputChannel)
 }
 
+func reverseCards(input []Card) []Card {
+	if len(input) == 0 {
+		return input
+	}
+	return append(reverseCards(input[1:]), input[0])
+}
+
 func updateGui(gameStateChannel chan NetworkMessage, opponentButtons [4]*widget.Button, buttons [4]*widget.Button, boardButtons [4]*widget.Button) {
 	for {
 		nm := <-gameStateChannel
@@ -92,10 +99,12 @@ func updateGui(gameStateChannel chan NetworkMessage, opponentButtons [4]*widget.
 			opponentButtons[i].Refresh()
 		}
 
-		for i := 0; i < min(4, int(nm.BoardCount)); i++ {
-			if i < len(nm.BoardOpenCards) {
-				boardButtons[i].Show()
-				boardButtons[i].SetText(fmt.Sprint(nm.BoardOpenCards[i]))
+		reversedOpenCards := reverseCards(nm.BoardOpenCards)
+		fmt.Println(nm.BoardOpenCards)
+		fmt.Println(reversedOpenCards)
+		for i := 0; i < 4; i++ {
+			if i < len(reversedOpenCards) {
+				boardButtons[i].SetText(fmt.Sprint(reversedOpenCards[i]))
 			} else {
 				boardButtons[i].SetText(UNKNOWN)
 			}

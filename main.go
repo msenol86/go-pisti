@@ -89,7 +89,11 @@ func main() {
 				<-player2InputChannel
 			}
 
+			if isFirstRound {
+				openCardCount = 3
+			}
 			isFirstRound = false
+
 			g = g.playCard(false, s2-1)
 			player2Channel <- fromGame(g, false, openCardCount, false)
 			if len(g.deck) > 7 && len(g.player1.hand) < 1 && len(g.player2.hand) < 1 {
