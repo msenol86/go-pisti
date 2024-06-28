@@ -13,8 +13,10 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -227,28 +229,39 @@ func showGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int) 
 		boardButtons[i].Disable()
 		opponentButtons[i].Disable()
 	}
-	topContainer := container.NewHBox(
+	topContainer := container.New(
+		layout.NewGridLayout(5),
+		container.New(layout.NewCenterLayout(), widget.NewLabel("Opponent")),
 		opponentButtons[0],
 		opponentButtons[1],
 		opponentButtons[2],
 		opponentButtons[3])
-	boardContainer := container.NewHBox(
+	boardContainer := container.New(
+		layout.NewGridLayout(5),
+		container.New(layout.NewCenterLayout(), widget.NewLabel("Board")),
 		boardButtons[0],
 		boardButtons[1],
 		boardButtons[2],
 		boardButtons[3])
-	bottomContainer := container.NewHBox(
+
+	text := canvas.NewText("Player", color.)
+	text.Alignment = fyne.TextAlignTrailing
+	text.TextStyle = fyne.TextStyle{Italic: true}
+	bottomContainer := container.New(
+		layout.NewGridLayout(5),
+		container.New(layout.NewCenterLayout(), text),
 		buttons[0],
 		buttons[1],
 		buttons[2],
 		buttons[3],
 	)
-	parentContainer := container.NewVBox(
-		topContainer,
-		boardContainer,
-		bottomContainer,
-	)
-	w.Resize(fyne.Size{Width: 950, Height: 450})
+	bottomContainer.Resize(fyne.NewSize(940, 80))
+	boardContainer.Resize(fyne.NewSize(940, 80))
+	topContainer.Resize(fyne.NewSize(940, 80))
+	parentLayout := layout.NewGridLayout(1)
+	parentContainer := container.New(parentLayout, topContainer, layout.NewSpacer(), boardContainer, layout.NewSpacer(), bottomContainer)
+	parentContainer.Resize(fyne.NewSize(900, 400))
+	w.Resize(fyne.NewSize(950, 450))
 	w.SetContent(parentContainer)
 
 	go updateGui(gameStateChannel, playerInputChannel, opponentButtons, buttons, boardButtons, w)
