@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"image/color"
 	"io"
 	"log"
 	"net"
@@ -142,6 +143,9 @@ func updateGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int
 					buttons[i].SetText(nm.PlayerHand[i].toString())
 					if nm.IsPlayerTurn {
 						buttons[i].Enable()
+						// if i == 0 {
+						// 	buttons[i].Importance = widget.HighImportance
+						// }
 						tAI := os.Getenv("AI")
 						if tAI == AI {
 							go playCardAutomaticaly(playerInputChannel)
@@ -168,9 +172,13 @@ func updateGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int
 			reversedOpenCards := reverseCards(nm.BoardOpenCards)
 			fmt.Println(nm.BoardOpenCards)
 			fmt.Println(reversedOpenCards)
+
 			for i := 0; i < 4; i++ {
 				if i < len(reversedOpenCards) {
 					boardButtons[i].SetText(reversedOpenCards[i].toString())
+					if i == 0 {
+						boardButtons[i].Importance = widget.HighImportance
+					}
 				} else {
 					boardButtons[i].SetText(UNKNOWN)
 				}
@@ -229,27 +237,32 @@ func showGui(gameStateChannel chan NetworkMessage, playerInputChannel chan int) 
 		boardButtons[i].Disable()
 		opponentButtons[i].Disable()
 	}
+	opponentText := canvas.NewText("Opponent", color.Black)
+	opponentText.Alignment = fyne.TextAlignCenter
+	// opponentText.TextStyle = fyne.TextStyle{Italic: true}
 	topContainer := container.New(
 		layout.NewGridLayout(5),
-		container.New(layout.NewCenterLayout(), widget.NewLabel("Opponent")),
+		container.New(layout.NewCenterLayout(), opponentText),
 		opponentButtons[0],
 		opponentButtons[1],
 		opponentButtons[2],
 		opponentButtons[3])
+	boardText := canvas.NewText("Board", color.Black)
+	boardText.Alignment = fyne.TextAlignCenter
+	// boardText.TextStyle = fyne.TextStyle{Bold: true}
 	boardContainer := container.New(
 		layout.NewGridLayout(5),
-		container.New(layout.NewCenterLayout(), widget.NewLabel("Board")),
+		container.New(layout.NewCenterLayout(), boardText),
 		boardButtons[0],
 		boardButtons[1],
 		boardButtons[2],
 		boardButtons[3])
 
-	text := canvas.NewText("Player", color.)
-	text.Alignment = fyne.TextAlignTrailing
-	text.TextStyle = fyne.TextStyle{Italic: true}
+	playerText := canvas.NewText("Player", color.Black)
+	playerText.Alignment = fyne.TextAlignCenter
 	bottomContainer := container.New(
 		layout.NewGridLayout(5),
-		container.New(layout.NewCenterLayout(), text),
+		container.New(layout.NewCenterLayout(), playerText),
 		buttons[0],
 		buttons[1],
 		buttons[2],
